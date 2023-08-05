@@ -1,0 +1,8 @@
+export { Customer } from './Customer'
+export { OperationType } from './OperationType'
+export { Posting } from './Posting'
+export { PostingLocation } from './PostingLocation'
+export { PostingPicture } from './PostingPicture'
+export { PostingPrices } from './PostingPrices'
+export { Publisher } from './Publisher'
+export { User } from './User'
