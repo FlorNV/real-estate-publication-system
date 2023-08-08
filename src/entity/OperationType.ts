@@ -1,14 +1,19 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, BaseEntity } from 'typeorm'
 import { Posting } from './Posting'
+import { type OperationTypeName } from '../types'
 
 @Entity()
-export class OperationType {
+export class OperationType extends BaseEntity {
   @PrimaryGeneratedColumn()
     id: number
 
-  @Column({ unique: true })
-    operationTypeName: string
+  @Column({
+    type: 'enum',
+    enum: ['RENT', 'SALE', 'TEMPORARY_RENTAL'],
+    unique: true
+  })
+    name: OperationTypeName
 
-  @OneToOne(() => Posting, (posting) => posting.operationType)
-    posting: Posting
+  @OneToMany(() => Posting, (posting) => posting.operationType)
+    postings: Posting[]
 }

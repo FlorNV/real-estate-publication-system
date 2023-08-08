@@ -1,37 +1,59 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm'
-import { OperationType, PostingPrices, PostingLocation, Publisher } from './index'
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+  ManyToOne,
+  BaseEntity,
+  OneToMany,
+  CreateDateColumn
+} from 'typeorm'
+import {
+  OperationType,
+  PostingPrices,
+  PostingLocation,
+  Publisher,
+  PostingPicture,
+  RealEstateType
+} from './index'
+import { type PublicationPlan, type PostingStatus } from '../types'
 
 @Entity()
-export class Posting {
+export class Posting extends BaseEntity {
   @PrimaryGeneratedColumn()
     id: number
 
-  @Column()
-    postingType: string
-
-  @Column()
-    publicationPlan: string
-
-  @Column()
+  @CreateDateColumn()
     publishDate: Date
 
-  @Column()
-    postingStatus: string
+  @Column({
+    type: 'enum',
+    enum: ['SIMPLE', 'HIGHLIGHTED', 'SUPERHIGHLIGHTED'],
+    default: 'SIMPLE'
+  })
+    publicationPlan: PublicationPlan
+
+  @Column({
+    type: 'enum',
+    enum: ['AVAILABLE', 'RESERVED', 'FINALIZED'],
+    default: 'AVAILABLE'
+  })
+    postingStatus: PostingStatus
 
   @Column()
     title: string
 
   @Column()
-    postinSlug: string
+    postingSlug: string
 
   @Column({ type: 'text' })
-    postinDescription: string
+    postingDescription: string
 
-  @Column()
-    reserved: boolean
+  @ManyToOne(() => RealEstateType, (realEstateType) => realEstateType.postings)
+    realEstateType: RealEstateType
 
-  @OneToOne(() => OperationType)
-  @JoinColumn()
+  @ManyToOne(() => OperationType, (operationType) => operationType.postings)
     operationType: OperationType
 
   @OneToOne(() => PostingPrices)
@@ -44,4 +66,7 @@ export class Posting {
 
   @ManyToOne(() => Publisher, (publisher) => publisher.postings)
     publisher: Publisher
+
+  @OneToMany(() => PostingPicture, (postinPicture) => postinPicture.posting)
+    postingPictures: []
 }

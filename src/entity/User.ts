@@ -1,8 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm'
-import { Customer } from './Customer'
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, CreateDateColumn, UpdateDateColumn, BaseEntity } from 'typeorm'
+import { Publisher, Seeker } from './index'
+import { type UserRole } from '../types'
+import { ROLES } from '../constants'
 
 @Entity()
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
     id: number
 
@@ -15,12 +17,22 @@ export class User {
   @Column()
     phoneNumber: string
 
+  @Column({
+    type: 'enum',
+    enum: ROLES,
+    default: 'SEEKER'
+  })
+    role: UserRole
+
   @CreateDateColumn()
     createdAt: Date
 
   @UpdateDateColumn()
     updateAt: Date
 
-  @OneToOne(() => Customer, (customer) => customer.user)
-    customer: Customer
+  @OneToOne(() => Seeker, (seeker) => seeker.user)
+    seeker: Seeker
+
+  @OneToOne(() => Publisher, (publisher) => publisher.user)
+    publisher: Publisher
 }

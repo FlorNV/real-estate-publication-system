@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, OneToOne, JoinColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, OneToOne, JoinColumn, BaseEntity } from 'typeorm'
 import { Posting, User } from './index'
 
 @Entity()
-export class Publisher {
+export class Publisher extends BaseEntity {
   @PrimaryGeneratedColumn()
     id: number
 

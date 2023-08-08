@@ -1,12 +1,13 @@
 import { DataSource } from 'typeorm'
 import {
-  Customer,
   OperationType,
   Posting,
   PostingLocation,
   PostingPicture,
   PostingPrices,
   Publisher,
+  RealEstateType,
+  Seeker,
   User
 } from './entity/index'
 
@@ -19,13 +20,14 @@ export const AppDataSource = new DataSource({
   database: 'real-estate-publication-system-db',
   synchronize: true,
   entities: [
-    Customer,
     OperationType,
     Posting,
     PostingLocation,
     PostingPicture,
     PostingPrices,
     Publisher,
+    RealEstateType,
+    Seeker,
     User
   ]
 })

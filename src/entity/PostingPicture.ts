@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToOne } from 'typeorm'
+import { Posting } from './Posting'
 
 @Entity()
-export class PostingPicture {
+export class PostingPicture extends BaseEntity {
   @PrimaryGeneratedColumn()
     id: number
 
@@ -13,4 +14,7 @@ export class PostingPicture {
 
   @Column()
     public_id: string
+
+  @ManyToOne(() => Posting, (posting) => posting.postingPictures)
+    posting: Posting
 }
