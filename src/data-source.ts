@@ -5,9 +5,7 @@ import {
   PostingLocation,
   PostingPicture,
   PostingPrices,
-  Publisher,
-  RealEstateType,
-  Seeker,
+  PropertyType,
   User
 } from './entity/index'
 
@@ -25,9 +23,7 @@ export const AppDataSource = new DataSource({
     PostingLocation,
     PostingPicture,
     PostingPrices,
-    Publisher,
-    RealEstateType,
-    Seeker,
+    PropertyType,
     User
   ]
 })

@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, BaseEntity } from 'typeorm'
 import { Posting } from './Posting'
 import { type OperationTypeName } from '../types'
+import { OPERATION_TYPE } from '../utils/constants'
 
 @Entity()
 export class OperationType extends BaseEntity {
@@ -9,7 +10,7 @@ export class OperationType extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: ['RENT', 'SALE', 'TEMPORARY_RENTAL'],
+    enum: OPERATION_TYPE,
     unique: true
   })
     name: OperationTypeName

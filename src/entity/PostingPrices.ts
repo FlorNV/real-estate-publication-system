@@ -12,10 +12,10 @@ export class PostingPrices extends BaseEntity {
   @Column()
     priceCurrency: string
 
-  @Column()
+  @Column({ nullable: true })
     expensesAmount: number
 
-  @Column()
+  @Column({ nullable: true })
     expensesCurrency: string
 
   @OneToOne(() => Posting, (posting) => posting.postingPrices)

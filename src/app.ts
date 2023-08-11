@@ -4,7 +4,8 @@ import cors from 'cors'
 
 import userRouter from './routes/user.router'
 import operationTypeRouter from './routes/operation-type.router'
-import realEstateTypeRouter from './routes/real-estate-type.router'
+import propertyTypeRouter from './routes/property-type.router'
+import postingRouter from './routes/posting.router'
 
 // Initializations
 const app = express()
@@ -17,6 +18,7 @@ app.use(cors())
 // Routes
 app.use('/api/v1/', userRouter)
 app.use('/api/v1/', operationTypeRouter)
-app.use('/api/v1/', realEstateTypeRouter)
+app.use('/api/v1/', propertyTypeRouter)
+app.use('/api/v1/', postingRouter)
 
 export default app

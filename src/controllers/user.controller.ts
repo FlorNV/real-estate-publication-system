@@ -1,15 +1,13 @@
 import { type Request, type Response } from 'express'
 import { type UserRole } from '../types'
-import { Publisher, User } from '../entity'
-import { Seeker } from '../entity/Seeker'
-import { ROLES } from '../constants'
+import { User } from '../entity'
 
 interface UserBody {
   email: string
   password: string
   phoneNumber: string
   role: UserRole
-  name?: string
+  realEstateName?: string
   description?: string
   lastName?: string
   firstName?: string
@@ -17,12 +15,7 @@ interface UserBody {
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find({
-      relations: {
-        publisher: true,
-        seeker: true
-      }
-    })
+    const users = await User.find()
     return res.status(200).json(users)
   } catch (error) {
     if (error instanceof Error) {
@@ -62,12 +55,6 @@ export const signUp = async (req: Request<null, null, UserBody>, res: Response) 
       })
     }
 
-    // if (!ROLES.includes(role)) {
-    //   return res.status(400).json({
-    //     message: 'role can only have the values ADMIN, SEKEER or EDITOR.'
-    //   })
-    // }
-
     const userFound = await User.findOneBy({ email })
     if (userFound) {
       return res.status(404).json({
@@ -81,25 +68,16 @@ export const signUp = async (req: Request<null, null, UserBody>, res: Response) 
     user.phoneNumber = phoneNumber
     user.role = role
 
-    if (role === 'EDITOR') {
-      const { name, description } = req.body
-      if (!name || !description) {
+    if (role === 'PUBLISHER') {
+      const { realEstateName, description } = req.body
+      if (!realEstateName || !description) {
         return res.status(400).json({
           message: 'send name and description.'
         })
       }
 
-      const publisher = new Publisher()
-      publisher.name = name
-      publisher.description = description
-
-      await user.save()
-
-      publisher.user = user
-
-      await publisher.save()
-
-      // user.publisher = publisher
+      user.realEstateName = realEstateName
+      user.description = description
     } else {
       const { firstName, lastName } = req.body
       if (!firstName || !lastName) {
@@ -108,27 +86,18 @@ export const signUp = async (req: Request<null, null, UserBody>, res: Response) 
         })
       }
 
-      const seeker = new Seeker()
-      seeker.firstName = firstName
-      seeker.lastName = lastName
-
-      await user.save()
-
-      seeker.user = user
-
-      await seeker.save()
-
-      // user.seeker = seeker
+      user.firstName = firstName
+      user.lastName = lastName
     }
 
-    // await user.save()
+    await user.save()
 
     return res.status(201).json(user)
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes('invalid input value for enum')) {
         return res.status(400).json({
-          message: 'role can only have the values ADMIN, SEKEER or EDITOR.'
+          message: 'role can only have the values ADMIN, PUBLISHER or SEEKER.'
         })
       }
 
@@ -167,6 +136,12 @@ export const updateUser = async (req: Request<{ id: string }, null, UserBody>, r
     return res.sendStatus(204)
   } catch (error) {
     if (error instanceof Error) {
+      if (error.message.includes('invalid input value for enum')) {
+        return res.status(400).json({
+          message: 'role can only have the values ADMIN, PUBLISHER or SEEKER.'
+        })
+      }
+
       return res.status(500).json({
         message: error.message
       })

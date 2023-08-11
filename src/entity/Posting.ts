@@ -13,11 +13,12 @@ import {
   OperationType,
   PostingPrices,
   PostingLocation,
-  Publisher,
   PostingPicture,
-  RealEstateType
+  PropertyType,
+  User
 } from './index'
 import { type PublicationPlan, type PostingStatus } from '../types'
+import { POSTING_STATUS, PUBLICATION_PLAN } from '../utils/constants'
 
 @Entity()
 export class Posting extends BaseEntity {
@@ -29,14 +30,14 @@ export class Posting extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: ['SIMPLE', 'HIGHLIGHTED', 'SUPERHIGHLIGHTED'],
+    enum: PUBLICATION_PLAN,
     default: 'SIMPLE'
   })
     publicationPlan: PublicationPlan
 
   @Column({
     type: 'enum',
-    enum: ['AVAILABLE', 'RESERVED', 'FINALIZED'],
+    enum: POSTING_STATUS,
     default: 'AVAILABLE'
   })
     postingStatus: PostingStatus
@@ -44,14 +45,14 @@ export class Posting extends BaseEntity {
   @Column()
     title: string
 
-  @Column()
+  @Column({ nullable: true })
     postingSlug: string
 
   @Column({ type: 'text' })
     postingDescription: string
 
-  @ManyToOne(() => RealEstateType, (realEstateType) => realEstateType.postings)
-    realEstateType: RealEstateType
+  @ManyToOne(() => PropertyType, (propertyType) => propertyType.postings)
+    propertyType: PropertyType
 
   @ManyToOne(() => OperationType, (operationType) => operationType.postings)
     operationType: OperationType
@@ -64,9 +65,9 @@ export class Posting extends BaseEntity {
   @JoinColumn()
     postingLocation: PostingLocation
 
-  @ManyToOne(() => Publisher, (publisher) => publisher.postings)
-    publisher: Publisher
+  @ManyToOne(() => User, (publisher) => publisher.postings)
+    publisher: User
 
   @OneToMany(() => PostingPicture, (postinPicture) => postinPicture.posting)
-    postingPictures: []
+    postingPictures: PostingPicture[]
 }
