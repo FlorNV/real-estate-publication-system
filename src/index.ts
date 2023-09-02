@@ -1,9 +1,8 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import 'reflect-metadata'
 import app from './app'
 import { AppDataSource } from './data-source'
 
-dotenv.config()
 const port = process.env.PORT ?? 3000
 
 // Start the server

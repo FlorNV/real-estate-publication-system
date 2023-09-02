@@ -1,28 +1,40 @@
+import { type ParamsDictionary } from 'express-serve-static-core'
 import { type Request, type Response } from 'express'
 import { Posting, PostingPicture } from '../entity'
+import { promises as fs } from 'fs'
+import cloudinaryModule from 'cloudinary'
+const cloudinary = cloudinaryModule.v2
 
-interface PostingPicturesBody {
-  pictures: Array<{
-    url: string
-    title: string }>
-}
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
 interface PostingPictureBody {
-  url: string
   title: string
+  postingId: number
 }
 
-interface Params {
+interface Params extends ParamsDictionary {
   id: string
-  pictureId: string
+  // pictureId: string
 }
 
-export const createPostingPicture = async (req: Request<Params, null, PostingPicturesBody>, res: Response) => {
-  const { id } = req.params
-  const { pictures } = req.body
+interface TypedRequest<U extends ParamsDictionary, T> extends Request {
+  params: U
+  body: T
+}
+
+// req: TypedRequest<{ id: string }, PostingPicturesBody>
+
+export const createPostingPictures = async (req: Request<null, null, PostingPictureBody, null>, res: Response) => {
+  // const { id } = req.params
+  const { title, postingId } = req.body
+  const file = req.file
   try {
     const posting = await Posting.findOne({
-      where: { id: parseInt(id) },
+      where: { id: postingId },
       relations: {
         postingPictures: true
       }
@@ -33,24 +45,35 @@ export const createPostingPicture = async (req: Request<Params, null, PostingPic
       })
     }
 
-    const pictureList = await Promise.all(
-      pictures.map(async (picture) => {
-        const postingPicture = new PostingPicture()
-        postingPicture.url = picture.url
-        postingPicture.title = picture.title
-        postingPicture.public_id = picture.title
-
-        await postingPicture.save()
-
-        return postingPicture
+    if (!file) {
+      return res.status(400).json({
+        message: 'send picture and title'
       })
-    )
+    }
 
-    posting.postingPictures = [...posting.postingPictures, ...pictureList]
+    const result = await cloudinary.uploader.upload(file.path)
+
+    if (!result) {
+      await fs.unlink(file.path)
+      return res.status(400).json({
+        message: 'could not upload the picture'
+      })
+    }
+
+    const postingPicture = new PostingPicture()
+    postingPicture.title = title
+    postingPicture.url = result.url
+    postingPicture.public_id = result.public_id
+
+    await postingPicture.save()
+    await fs.unlink(file.path)
+
+    // Agregar al array de fotos
+    posting.postingPictures.push(postingPicture)
 
     await posting.save()
 
-    return res.sendStatus(204)
+    return res.status(201).json(posting)
   } catch (error) {
     if (error instanceof Error) {
       return res.status(500).json({
@@ -60,11 +83,13 @@ export const createPostingPicture = async (req: Request<Params, null, PostingPic
   }
 }
 
-export const updatePostingPicture = async (req: Request<Params, null, PostingPictureBody>, res: Response) => {
-  const { id, pictureId } = req.params
+export const updatePostingPicture = async (req: Request<Params, null, PostingPictureBody, null>, res: Response) => {
+  const { id } = req.params
+  const { title, postingId } = req.body
+  const file = req.file
   try {
     const posting = await Posting.findOne({
-      where: { id: parseInt(id) },
+      where: { id: postingId },
       relations: {
         postingPictures: true
       }
@@ -75,15 +100,23 @@ export const updatePostingPicture = async (req: Request<Params, null, PostingPic
       })
     }
 
-    const pictureFound = posting.postingPictures.find(picture => picture.id === parseInt(pictureId))
+    const pictureFound = posting.postingPictures.find(picture => picture.id === parseInt(id))
     if (!pictureFound) {
       return res.status(404).json({
         message: 'picture not found'
       })
     }
 
-    pictureFound.url = req.body.url
-    pictureFound.title = req.body.title
+    if (file) {
+      await cloudinary.uploader.destroy(pictureFound.public_id)
+      const result = await cloudinary.uploader.upload(file.path)
+      pictureFound.url = result.url
+      pictureFound.public_id = result.public_id
+
+      await fs.unlink(file.path)
+    }
+
+    pictureFound.title = title
 
     await pictureFound.save()
 
@@ -97,7 +130,7 @@ export const updatePostingPicture = async (req: Request<Params, null, PostingPic
   }
 }
 
-export const deletePostingPicture = async (req: Request<Params, null, null>, res: Response) => {
+export const deletePostingPicture = async (req: Request<Params, null, null, null>, res: Response) => {
   const { id, pictureId } = req.params
   try {
     const posting = await Posting.findOne({
@@ -119,6 +152,7 @@ export const deletePostingPicture = async (req: Request<Params, null, null>, res
       })
     }
 
+    await cloudinary.uploader.destroy(pictureFound.public_id)
     await pictureFound.remove()
 
     return res.sendStatus(204)
