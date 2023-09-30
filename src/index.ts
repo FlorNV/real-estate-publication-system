@@ -9,8 +9,8 @@ const port = process.env.PORT ?? 3000
 async function main () {
   try {
     await AppDataSource.initialize()
-    console.log('Database connected')
-    app.listen(port, () => { console.log(`Server on port ${port}`) })
+    console.log('✅ Database connected')
+    app.listen(port, () => { console.log(`✅ Server on port ${port}`) })
   } catch (error) {
     console.error(error)
     throw new Error('Could not connect to database')

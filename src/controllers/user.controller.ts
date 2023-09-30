@@ -97,7 +97,7 @@ export const signUp = async (req: Request<null, null, UserBody>, res: Response) 
     if (error instanceof Error) {
       if (error.message.includes('invalid input value for enum')) {
         return res.status(400).json({
-          message: 'role can only have the values ADMIN, PUBLISHER or SEEKER.'
+          message: 'role can only have the values PUBLISHER or SEEKER.'
         })
       }
 
@@ -138,7 +138,7 @@ export const updateUser = async (req: Request<{ id: string }, null, UserBody>, r
     if (error instanceof Error) {
       if (error.message.includes('invalid input value for enum')) {
         return res.status(400).json({
-          message: 'role can only have the values ADMIN, PUBLISHER or SEEKER.'
+          message: 'role can only have the values PUBLISHER or SEEKER.'
         })
       }
 

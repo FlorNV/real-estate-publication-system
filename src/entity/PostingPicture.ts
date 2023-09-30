@@ -12,9 +12,6 @@ export class PostingPicture extends BaseEntity {
   @Column({ length: 255 })
     title: string
 
-  @Column()
-    public_id: string
-
   @ManyToOne(() => Posting, (posting) => posting.postingPictures)
     posting: Posting
 }

@@ -10,10 +10,10 @@ interface PostingPricesType {
   expensesCurrency: string
 }
 
-// interface Picture {
-//   url: string
-//   title: string
-// }
+interface Picture {
+  url: string
+  title: string
+}
 
 interface PostingLocationType {
   address: string
@@ -30,7 +30,7 @@ interface PostingBody {
   postingPrices: PostingPricesType
   postingLocation: PostingLocationType
   publisher: number
-  // postingPictures: Picture[]
+  postingPictures: Picture[]
 }
 
 export const getPostings = async (req: Request, res: Response) => {
@@ -86,10 +86,10 @@ export const getPosting = async (req: Request<{ id: string }, null, null>, res: 
 }
 
 export const createPosting = async (req: Request<null, null, PostingBody>, res: Response) => {
-  const { publicationPlan, title, postingDescription, propertyType, operationType, postingPrices, postingLocation, publisher } = req.body
+  const { publicationPlan, title, postingDescription, propertyType, operationType, postingPrices, postingLocation, publisher, postingPictures } = req.body
 
   try {
-    if (!title || !postingDescription || !propertyType || !operationType || !postingPrices || !postingLocation || !publisher) {
+    if (!title || !postingDescription || !propertyType || !operationType || !postingPrices || !postingLocation || !publisher || !postingPictures.length) {
       return res.status(400).json({
         message: 'title, description, property type, operation type, prices, location and publisher are required'
       })
@@ -141,17 +141,16 @@ export const createPosting = async (req: Request<null, null, PostingBody>, res: 
     await newPostingLocation.save()
 
     // Crear y guadar imagenes
-    // const picturesList = await Promise.all(
-    //   postingPictures.map(async (picture) => {
-    //     const postingPicture = new PostingPicture()
-    //     postingPicture.url = picture.url
-    //     postingPicture.title = picture.title
-    //     postingPicture.public_id = picture.title
+    const picturesList = await Promise.all(
+      postingPictures.map(async (picture) => {
+        const postingPicture = new PostingPicture()
+        postingPicture.url = picture.url
+        postingPicture.title = picture.title
 
-    //     await postingPicture.save()
+        await postingPicture.save()
 
-    //     return postingPicture
-    //   }))
+        return postingPicture
+      }))
 
     // Crear y guardar precios
     const newPostingPrices = new PostingPrices()
@@ -167,7 +166,7 @@ export const createPosting = async (req: Request<null, null, PostingBody>, res: 
     posting.postingDescription = postingDescription
     posting.title = title
     posting.postingLocation = newPostingLocation
-    // posting.postingPictures = picturesList
+    posting.postingPictures = picturesList
     posting.postingPrices = newPostingPrices
     posting.propertyType = propertyTypeFound
     posting.publicationPlan = publicationPlan
