@@ -4,12 +4,11 @@ import {
   deletePostingPicture,
   createPostingPictures
 } from '../controllers/posting-pictures.controller'
-import { uploadMiddleware } from '../middlewares/multer-middlewares'
 
 const router = Router()
 
-router.post('/pictures', uploadMiddleware, createPostingPictures)
-router.put('/pictures/:id', uploadMiddleware, updatePostingPicture)
+router.post('/pictures', createPostingPictures)
+router.put('/pictures/:id', updatePostingPicture)
 router.delete('/pictures/:id', deletePostingPicture)
 
 export default router

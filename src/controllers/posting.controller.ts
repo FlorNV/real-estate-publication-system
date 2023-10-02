@@ -3,6 +3,10 @@ import { type PostingStatus, type PublicationPlan } from '../types'
 import { OperationType, Posting, PostingLocation, PostingPicture, PostingPrices, PropertyType, User } from '../entity'
 import { createSlug } from '../utils/format'
 
+interface PostingStatusBody {
+  postingStatus: PostingStatus
+}
+
 interface PostingPricesType {
   priceAmount: number
   priceCurrency: string
@@ -29,7 +33,6 @@ interface PostingBody {
   operationType: number
   postingPrices: PostingPricesType
   postingLocation: PostingLocationType
-  publisher: number
   postingPictures: Picture[]
 }
 
@@ -85,13 +88,14 @@ export const getPosting = async (req: Request<{ id: string }, null, null>, res: 
   }
 }
 
-export const createPosting = async (req: Request<null, null, PostingBody>, res: Response) => {
-  const { publicationPlan, title, postingDescription, propertyType, operationType, postingPrices, postingLocation, publisher, postingPictures } = req.body
+export const createPosting = async (req: Request, res: Response) => {
+  const { publicationPlan, title, postingDescription, propertyType, operationType, postingPrices, postingLocation, postingPictures }: PostingBody = req.body
+  const userId = req.userId as string
 
   try {
-    if (!title || !postingDescription || !propertyType || !operationType || !postingPrices || !postingLocation || !publisher || !postingPictures.length) {
+    if (!title || !postingDescription || !propertyType || !operationType || !postingPrices || !postingLocation || postingPictures.length === 0) {
       return res.status(400).json({
-        message: 'title, description, property type, operation type, prices, location and publisher are required'
+        message: 'title, description, property type, operation type, prices and location are required'
       })
     }
 
@@ -109,9 +113,7 @@ export const createPosting = async (req: Request<null, null, PostingBody>, res: 
       })
     }
 
-    const publisherFound = await User.findOne({
-      where: { id: publisher, role: 'PUBLISHER' }
-    })
+    const publisherFound = await User.findOneBy({ id: parseInt(userId) })
     if (!publisherFound) {
       return res.status(404).json({
         message: 'publisher not found'
@@ -142,7 +144,7 @@ export const createPosting = async (req: Request<null, null, PostingBody>, res: 
 
     // Crear y guadar imagenes
     const picturesList = await Promise.all(
-      postingPictures.map(async (picture) => {
+      postingPictures.map(async (picture: Picture) => {
         const postingPicture = new PostingPicture()
         postingPicture.url = picture.url
         postingPicture.title = picture.title
@@ -196,12 +198,15 @@ export const createPosting = async (req: Request<null, null, PostingBody>, res: 
   }
 }
 
-export const updatePosting = async (req: Request<{ id: string }, null, PostingBody>, res: Response) => {
+export const updatePosting = async (req: Request, res: Response) => {
   const { id } = req.params
-  const { publicationPlan, title, postingDescription, propertyType, operationType } = req.body
+  const { publicationPlan, title, postingDescription, propertyType, operationType }: PostingBody = req.body
+  const userId = req.userId as string
   try {
-    const posting = await Posting.findOneBy({ id: parseInt(id) })
-    if (!posting) {
+    const publisherFound = await User.findOneBy({ id: parseInt(userId) })
+
+    const postingFound = publisherFound?.postings.find(posting => posting.id === parseInt(id))
+    if (!postingFound) {
       return res.status(404).json({
         message: 'posting not found'
       })
@@ -222,7 +227,7 @@ export const updatePosting = async (req: Request<{ id: string }, null, PostingBo
     }
 
     // Generar slug
-    const slug = `${createSlug(title)}-${posting.id}`
+    const slug = `${createSlug(title)}-${postingFound.id}`
 
     const body = {
       publicationPlan,
@@ -251,12 +256,15 @@ export const updatePosting = async (req: Request<{ id: string }, null, PostingBo
   }
 }
 
-export const updatePostingStatus = async (req: Request<{ id: string }, null, { postingStatus: PostingStatus }>, res: Response) => {
+export const updatePostingStatus = async (req: Request, res: Response) => {
   const { id } = req.params
-  const { postingStatus } = req.body
+  const { postingStatus }: PostingStatusBody = req.body
+  const userId = req.userId as string
   try {
-    const posting = await Posting.findOneBy({ id: parseInt(id) })
-    if (!posting) {
+    const publisherFound = await User.findOneBy({ id: parseInt(userId) })
+
+    const postingFound = publisherFound?.postings.find(posting => posting.id === parseInt(id))
+    if (!postingFound) {
       return res.status(404).json({
         message: 'posting not found'
       })

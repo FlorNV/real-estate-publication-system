@@ -7,14 +7,15 @@ import {
   signUp,
   updateUser
 } from '../controllers/user.controller'
+import { verifyToken } from '../middlewares/validateToken'
 
 const router = Router()
 
-router.get('/users', getUsers)
-router.get('/users/:id', getUser)
+router.get('/users', verifyToken, getUsers)
+router.get('/users/:id', verifyToken, getUser)
 router.post('/signup', signUp)
 router.post('/signin', signIn)
-router.put('/users/:id', updateUser)
-router.delete('/users/:id', deleteUser)
+router.put('/users/:id', verifyToken, updateUser)
+router.delete('/users/:id', verifyToken, deleteUser)
 
 export default router
